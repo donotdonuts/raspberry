@@ -15,26 +15,21 @@ Goal: stream video of the cat and automatically detect activities (poop, sleep, 
 
 ### Lessons learned
 - First SD card flash was bad (Pi never finished first boot, rootfs stayed 2.5 GB). Re-flashing with Raspberry Pi Imager (with verify) fixed it.
-- `momo.lan` at 192.168.86.35 on the network is a **different device**, not the Pi.
+- 192.168.86.35 turned out to be the Pi itself (`pizero.local` resolves to it).
+- `fswebcam` gives a black photo unless you skip the first frames: `fswebcam -r 1280x720 --no-banner -S 30 test.jpg`.
+- Run `scp` from the **Mac** prompt, not inside the Pi (`momo@pizero:~ $` means you're on the Pi; type `exit` to leave).
 - For stable power, use a USB supply in **PWR IN** rather than the PiSugar battery, especially with a webcam attached.
 - The old card's Raspberry Pi Connect auth key was exposed in a chat — revoke it in the Connect account if not already done.
 
-## Architecture
+## Architecture (updated 2026-10-02: detection moved to the cloud)
 ```
-[Logi cam] → [Pi Zero 2 W] --RTSP over Wi-Fi--> [Mac] → cat detection + activity rules → log / alerts
+[Logi cam] → [Pi Zero 2 W] --Tailscale--> [Oracle free ARM VM] → YOLO + before/after colour check → visits.csv, clips
+                                                               → label page http://catcam-vm:8000, daily summary 21:00
 ```
-The Pi Zero is too weak for real-time AI, so it only streams. Detection runs on the Mac.
-
-- Pi: **MediaMTX** RTSP stream, ~720p @ 15 fps
-- Mac: pretrained detector (e.g. YOLO, "cat" class) + zones + motion rules
-
-| Activity | Detection rule | Difficulty |
-|---|---|---|
-| Poop / pee | Cat in litter-box zone ≥ ~30 s, mostly still, digging motion around it | Easy–medium |
-| Sleep | Cat present, minimal motion ≥ 5 min (esp. in bed zone) | Easy |
-| Running / play | Fast change in cat position between frames | Easy |
-| Eating / drinking | Cat's head in food/water bowl zone | Easy |
-| Vomiting, scratching… | Custom model trained on own labelled clips | Harder (later) |
+- Pi: MediaMTX RTSP `rtsp://pizero:8554/litter`, 640x480 @ 10 fps (files in `pi/`)
+- VM: `catcam/detector.py` (visits), `catcam/tray_check.py` (poop = new dark blob, pee = new darker-yellow wet spot),
+  `catcam/label_server.py` (label/fix visits), `catcam/summary.py` (daily summary + health flags), `catcam/train.py` (v2 posture model)
+- Full step-by-step setup: **docs/setup-guide.md**
 
 ### Constraints
 - One camera = one view (litter box view is the most useful for health tracking)
@@ -44,13 +39,18 @@ The Pi Zero is too weak for real-time AI, so it only streams. Detection runs on 
 
 ## Roadmap
 - [ ] **Step 1 — Camera + streaming**
-  - [ ] Plug in webcam via OTG adapter
-  - [ ] Verify: `lsusb` (shows Logitech), `sudo apt install -y v4l-utils fswebcam`, `v4l2-ctl --list-devices` (shows /dev/video0)
-  - [ ] Test photo: `fswebcam -r 1280x720 --no-banner test.jpg`, then on Mac: `scp momo@pizero.local:test.jpg ~/Desktop/`
-  - [ ] Install MediaMTX, stream RTSP, watch it on the Mac
-- [ ] **Step 2 — Detection**: cat detection + zones (litter box, bed, bowls), log events like "poop 14:32, 45 s"
-- [ ] **Step 3 — Reporting**: daily summary / phone alerts (e.g. "no litter box visit in 24 h")
-- [ ] **Step 4 — Custom model**: record clips, label, train for harder activities
+  - [x] Plug in webcam via OTG adapter
+  - [x] Verify with `lsusb` / `v4l2-ctl --list-devices`
+  - [x] Test photo works (needs `-S 30`)
+  - [ ] Pi: run `pi/setup_pi.sh` + `sudo tailscale up`, watch stream in VLC (guide §1–2)
+- [ ] **Step 2 — Toilet cam on the cloud VM** (code written 2026-10-02, tested with simulated data)
+  - [ ] Oracle VM + Tailscale (guide §3)
+  - [ ] Install detector: `deploy/push.sh` + `deploy/setup_vm.sh` (guide §4)
+  - [ ] Mark tray: `zone_picker.py` (guide §5)
+  - [ ] Fake-poop test + tune `config.yaml` thresholds on real photos (guide §6)
+- [ ] **Step 3 — Daily use**: label visits on the label page for ~2 weeks; daily summary at 21:00
+- [ ] **Step 4 — v2 model**: after ~30 pee + 30 poop labels run `catcam.train`; compare against the colour rules
+- [ ] Later: phone alerts for health flags, other activities (sleep/eating) with a second camera
 
 ## Optional housekeeping
 - Password-less SSH (lets Claude run commands on the Pi): on Mac `ssh-copy-id momo@pizero.local`
