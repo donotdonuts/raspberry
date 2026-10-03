@@ -1,0 +1,5 @@
+# VM (detector, label page, training). torch is installed first by deploy/setup_vm.sh (CPU build).
+ultralytics>=8.3
+flask>=3.0
+pyyaml>=6.0
+numpy

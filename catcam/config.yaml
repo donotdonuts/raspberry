@@ -1,0 +1,38 @@
+# Molly toilet cam settings. Restart the detector after changing:  sudo systemctl restart catcam-detector
+
+stream_url: rtsp://pizero:8554/litter   # "pizero" = the Pi's Tailscale name
+stream_fps: 10
+
+# --- Cat detection (YOLO) ---
+yolo_model: yolo11n.pt      # downloaded automatically on first run
+detect_hz: 3                # YOLO runs per second
+cat_conf: 0.35              # min YOLO confidence to count as "cat"
+zone_overlap_min: 0.4       # share of the cat's box that must be over the tray to count as "in the tray"
+
+# --- Visit timing (seconds) ---
+enter_s: 3          # in the tray this long -> visit starts
+exit_s: 5           # out of the tray this long -> visit ends
+miss_grace_s: 2     # ignore YOLO missing her for this long
+sniff_s: 10         # visits shorter than this are logged as "sniff"
+preroll_s: 5        # clip starts this long before she enters
+settle_s: 15        # wait this long after she leaves before the "after" photo
+settle_max_s: 90    # give up waiting for an empty tray after this long
+
+# --- Before/after colour check (pixel units are at 640x480) ---
+tray_check:
+  rim_px: 6             # ignore this many pixels around the tray edge
+  min_darkening: 25     # pixel must get at least this much darker (0-255) to count as new
+  poop_v_ratio: 0.55    # darker than 55% of the litter brightness -> "dark brown/black"
+  wet_v_ratio: 0.85     # darker than 85% (but not poop-dark) -> wet litter candidate
+  wet_hue_tol: 12       # wet litter keeps roughly the litter's hue (OpenCV hue units, 0-179)
+  min_poop_px: 250      # new dark blob at least this big -> poop
+  min_wet_px: 400       # new darker-yellow blob at least this big -> pee
+  blob_min_px: 60       # blobs smaller than this are noise
+
+# --- Decision ---
+unsure_below: 0.5       # confidence below this shows up as "unsure"
+long_visit_s: 120       # nothing seen + visit this long -> lean poop
+
+# --- Housekeeping / summary ---
+keep_days: 30           # delete unlabelled clips older than this
+long_visit_flag_s: 180  # summary flags visits longer than this

@@ -1,0 +1,4 @@
+# Mac: zone picker + tuning the colour check on saved photos
+opencv-python
+pyyaml
+numpy

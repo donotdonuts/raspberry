@@ -1,0 +1,14 @@
+[Unit]
+Description=MediaMTX litter cam stream
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=momo
+SupplementaryGroups=video
+ExecStart=/usr/local/bin/mediamtx /etc/mediamtx/mediamtx.yml
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

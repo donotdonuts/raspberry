@@ -1,0 +1,12 @@
+# MediaMTX config for the litter cam. Only RTSP is needed; everything else is off to save CPU.
+logLevel: info
+rtmp: no
+hls: no
+webrtc: no
+srt: no
+
+paths:
+  litter:
+    # Starts the webcam -> H.264 encoder as soon as MediaMTX starts, restarts it if it dies.
+    runOnInit: /usr/local/bin/catcam-stream
+    runOnInitRestart: yes

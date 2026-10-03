@@ -1,0 +1,14 @@
+[Unit]
+Description=Molly toilet cam detector
+Wants=network-online.target tailscaled.service
+After=network-online.target tailscaled.service
+
+[Service]
+User=__USER__
+WorkingDirectory=__APP__
+ExecStart=__APP__/.venv/bin/python -m catcam.detector
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
