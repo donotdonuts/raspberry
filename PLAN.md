@@ -35,7 +35,7 @@ Goal: stream video of the cat and automatically detect activities (poop, sleep, 
 - One camera = one view (litter box view is the most useful for health tracking)
 - No night vision on the Logitech cam → IR camera or night light for night detection
 - Keep the Pi reasonably close to the router
-- Detection only runs while the Mac is on (could move to a mini PC / Pi 5 later)
+- Detection runs 24/7 on the Oracle VM; the Mac is only needed for the zone picker (the label page also works on the phone)
 
 ## Roadmap
 - [ ] **Step 1 — Camera + streaming**

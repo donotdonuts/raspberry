@@ -61,9 +61,12 @@ Mac $ ssh ubuntu@catcam-vm 'bash ~/catcam/deploy/setup_vm.sh America/New_York'
 ## 5. Mark the litter tray (2 min)
 ```bash
 Mac $ cd ~/Documents/raspberry
-Mac $ python3 -m pip install -r catcam/requirements-mac.txt
-Mac $ python3 -m catcam.zone_picker --push ubuntu@catcam-vm
+Mac $ /usr/local/bin/python3 -m venv .venv-mac               # once; use a native (arm64) Python, not conda
+Mac $ .venv-mac/bin/pip install -r catcam/requirements-mac.txt
+Mac $ .venv-mac/bin/python -m catcam.zone_picker --push ubuntu@catcam-vm
 ```
+Conda's OpenCV (and the x86 Anaconda pip wheel) has no FFmpeg and can't open the RTSP stream, hence the separate venv.
+
 Click the 4 corners of the litter (inside the tray walls), then press **Enter**. Redo this any time the camera or tray moves.
 
 ## 6. Check it works

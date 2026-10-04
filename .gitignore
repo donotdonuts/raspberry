@@ -4,3 +4,4 @@ __pycache__/
 .venv/
 *.pt
 catcam/zone.jpg
+.venv-mac/

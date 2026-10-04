@@ -8,7 +8,9 @@ sudo apt-get update
 sudo apt-get install -y ffmpeg v4l-utils curl
 
 echo "== Installing MediaMTX"
-VER=$(curl -fsSL https://api.github.com/repos/bluenviron/mediamtx/releases/latest | grep -m1 '"tag_name"' | cut -d'"' -f4)
+RELEASE_JSON=$(curl -fsSL https://api.github.com/repos/bluenviron/mediamtx/releases/latest)
+[[ $RELEASE_JSON =~ \"tag_name\":[[:space:]]*\"([^\"]+)\" ]] && VER=${BASH_REMATCH[1]} || VER=""
+[ -n "$VER" ] || { echo "Could not find latest MediaMTX version"; exit 1; }
 TMP=$(mktemp -d)
 for arch in arm64 arm64v8; do
   URL="https://github.com/bluenviron/mediamtx/releases/download/${VER}/mediamtx_${VER}_linux_${arch}.tar.gz"
